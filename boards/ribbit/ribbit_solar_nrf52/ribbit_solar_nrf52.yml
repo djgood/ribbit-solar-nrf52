@@ -1,0 +1,10 @@
+identifier: ribbit_solar_nrf52/nrf52833
+name: Local Interface Chip
+vendor: ribbit
+type: mcu
+arch: arm
+ram: 128
+flash: 512
+toolchain:
+  - zephyr
+supported: []

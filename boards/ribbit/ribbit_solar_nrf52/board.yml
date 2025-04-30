@@ -1,0 +1,5 @@
+board:
+  name: ribbit_solar_nrf52
+  vendor: ribbit
+  socs:
+    - name: nrf52833

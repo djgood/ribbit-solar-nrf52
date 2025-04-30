@@ -1,0 +1,19 @@
+{
+    "version": 2,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 20
+    },
+    "configurePresets": [
+        {
+            "name": "build",
+            "displayName": "Build for ribbit_solar_nrf52",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "BOARD": "ribbit_solar_nrf52/nrf52833",
+                "BOARD_ROOT": "${sourceDir}/"
+            }
+        }
+    ]
+}
