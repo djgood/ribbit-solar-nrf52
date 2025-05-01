@@ -11,59 +11,63 @@
  #include <zephyr/usb/usb_device.h>
  #include <zephyr/drivers/uart.h>
  #include <zephyr/drivers/gpio.h>
- 
- /* 1000 msec = 1 sec */
- #define SLEEP_TIME_MS   1000
- 
- /* The devicetree node identifier for the "led0" alias. */
- #define LED0_NODE DT_ALIAS(led0)
- 
- /*
-  * A build error on this line means your board is unsupported.
-  * See the sample documentation for information on how to fix this.
-  */
- static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
- 
+   
  BUILD_ASSERT(DT_NODE_HAS_COMPAT(DT_CHOSEN(zephyr_console), zephyr_cdc_acm_uart),
               "Console device is not ACM CDC UART device");
  
+#define DEV_CONSOLE DEVICE_DT_GET(DT_CHOSEN(zephyr_nrf91_ns_console))
+#define DEV_OTHER   DEVICE_DT_GET(DT_CHOSEN(uart_nrf91_ns))	
+
+const struct device *uart = DEV_OTHER;
+static uint8_t rx_buf[128] = {0};
+
+static void uart_cb(const struct device *dev, struct uart_event *evt, void *ctx)
+{
+	switch (evt->type) {
+	case UART_RX_RDY:
+		printk("%c", evt->data.rx.buf[evt->data.rx.offset]);
+		break;
+	case UART_RX_DISABLED:
+		uart_rx_enable(dev, rx_buf, sizeof(rx_buf), 100);
+		break;
+
+	default:
+		break;
+	}
+}
+
  int main(void)
  {
-         int ret;
-         bool led_state = true;
- 
-         if (!gpio_is_ready_dt(&led)) {
-                 return 0;
-         }
- 
-         ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
-         if (ret < 0) {
-                 return 0;
-         }
- 
-         const struct device *const dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
-         uint32_t dtr = 0;
- 
-         if (usb_enable(NULL)) {
-                 return 0;
-         }
- 
-         while (1) {
-                 ret = gpio_pin_toggle_dt(&led);
-                 if (ret < 0) {
-                         return 0;
-                 }
- 
-                 led_state = !led_state;
-                 printf("LED state: %s\n", led_state ? "ON" : "OFF");
-                 k_msleep(SLEEP_TIME_MS);
- 
-                 uart_line_ctrl_get(dev, UART_LINE_CTRL_DTR, &dtr);
-                 if (dtr) {
-                         printk("Hello World! %s\n", CONFIG_ARCH);
-                 }
- 
-         }
-         return 0;
+	if (usb_enable(NULL)) {
+		return 0;
+	}
+
+	printk("Hello World! %s\n", CONFIG_ARCH);
+
+	// int err = uart_callback_set(uart, uart_cb, NULL);
+	// if (err) {
+	// 	printk("ERROR when setting callback %d\n", err);
+	// 	return err;
+	// }
+
+	// uart_rx_enable(uart, rx_buf, sizeof(rx_buf), 100);
+	unsigned char c;
+	int ret;
+	while (1) {
+		ret = uart_poll_in(uart, &c);
+		if (ret < -1) {
+			printk("uart errored out\n");
+			break;
+		} else if (ret == 0) {
+			if (c == '\n') {
+				printk("");
+			} else {
+				printk("%c", c);
+			}
+		}
+		
+		k_sleep(K_MSEC(10));
+	}
+
+	return 0;
  }
- 

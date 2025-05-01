@@ -10,6 +10,10 @@
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
 		zephyr,console = &cdc_acm_uart0;
+		// zephyr,nrf91_ns_console = &cdc_acm_uart1;
+		uart,nrf91_ns = &uart0;
+		// zephyr,nrf91_console = &cdc_acm_uart2;
+		uart,nrf91 = &uart1;
 	};
 
 	aliases {
@@ -45,33 +49,38 @@ zephyr_udc0: &usbd {
 		label = "CDC_ACM_0";
 	};
 
-	// nRF91 ns
-	cdc_acm_uart1: cdc_acm_uart1 {
-		compatible = "zephyr,cdc-acm-uart";
-		label = "CDC_ACM_1";
-	};
+	// // nRF91 ns
+	// cdc_acm_uart1: cdc_acm_uart1 {
+	// 	compatible = "zephyr,cdc-acm-uart";
+	// 	label = "CDC_ACM_1";
+	// };
 
-	// nRF91
-	cdc_acm_uart2: cdc_acm_uart2 {
-		compatible = "zephyr,cdc-acm-uart";
-		label = "CDC_ACM_2";
-	};
+	// // nRF91
+	// cdc_acm_uart2: cdc_acm_uart2 {
+	// 	compatible = "zephyr,cdc-acm-uart";
+	// 	label = "CDC_ACM_2";
+	// };
+};
+
+&uicr {
+    nfct-pins-as-gpios; // Necessary to use uart0 pins
+	gpio-as-nreset;
 };
 
 &uart0 {
-	compatible = "nordic,nrf-uarte";
+	compatible = "nordic,nrf-uart";
 	status = "okay";
 	current-speed = <115200>;
 	pinctrl-0 = <&uart0_default>;
-	pinctrl-1 = <&uart0_sleep>;
-	pinctrl-names = "default", "sleep";
+	// pinctrl-1 = <&uart0_sleep>;
+	pinctrl-names = "default"; // , "sleep";
 };
 
-&uart1 {
-	compatible = "nordic,nrf-uarte";
-	status = "okay";
-	current-speed = <115200>;
-	pinctrl-0 = <&uart1_default>;
-	pinctrl-1 = <&uart1_sleep>;
-	pinctrl-names = "default", "sleep";
-};
+// &uart1 {
+// 	compatible = "nordic,nrf-uarte";
+// 	status = "okay";
+// 	current-speed = <115200>;
+// 	pinctrl-0 = <&uart1_default>;
+// 	pinctrl-1 = <&uart1_sleep>;
+// 	pinctrl-names = "default", "sleep";
+// };
