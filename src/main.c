@@ -15,10 +15,12 @@
  BUILD_ASSERT(DT_NODE_HAS_COMPAT(DT_CHOSEN(zephyr_console), zephyr_cdc_acm_uart),
               "Console device is not ACM CDC UART device");
  
-#define DEV_CONSOLE DEVICE_DT_GET(DT_CHOSEN(zephyr_nrf91_ns_console))
+#define DEV_CONSOLE DEVICE_DT_GET(DT_CHOSEN(zephyr_console))
 #define DEV_OTHER   DEVICE_DT_GET(DT_CHOSEN(uart_nrf91_ns))	
 
 const struct device *uart = DEV_OTHER;
+const struct device *console = DEV_CONSOLE;
+
 static uint8_t rx_buf[128] = {0};
 
 static void uart_cb(const struct device *dev, struct uart_event *evt, void *ctx)
@@ -65,8 +67,19 @@ static void uart_cb(const struct device *dev, struct uart_event *evt, void *ctx)
 				printk("%c", c);
 			}
 		}
-		
-		k_sleep(K_MSEC(10));
+
+		ret = uart_poll_in(console, &c);
+		if (ret < -1) {
+			printk("uart errored out\n");
+			break;
+		} else if (ret == 0) {
+			if (c == '\n') {
+				const unsigned char space = 0x0a;
+				uart_poll_out(uart, space);
+			} else {
+				uart_poll_out(uart, c);
+			}
+		}		
 	}
 
 	return 0;
