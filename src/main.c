@@ -61,11 +61,7 @@ static void uart_cb(const struct device *dev, struct uart_event *evt, void *ctx)
 			printk("uart errored out\n");
 			break;
 		} else if (ret == 0) {
-			if (c == '\n') {
-				printk("");
-			} else {
-				printk("%c", c);
-			}
+			printk("%c", c);
 		}
 
 		ret = uart_poll_in(console, &c);
@@ -73,12 +69,7 @@ static void uart_cb(const struct device *dev, struct uart_event *evt, void *ctx)
 			printk("uart errored out\n");
 			break;
 		} else if (ret == 0) {
-			if (c == '\n') {
-				const unsigned char space = 0x0a;
-				uart_poll_out(uart, space);
-			} else {
-				uart_poll_out(uart, c);
-			}
+			uart_poll_out(uart, c);
 		}		
 	}
 
